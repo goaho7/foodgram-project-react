@@ -100,6 +100,7 @@ class Recipe(models.Model):
                 name='unique_name_author',
             ),
         )
+        ordering = ['-id']
 
     def __str__(self) -> str:
         return f'{self.name}'
@@ -201,7 +202,7 @@ class ShoppingCart(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        verbose_name='Список покупок',
+        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,

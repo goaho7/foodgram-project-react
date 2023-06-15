@@ -8,6 +8,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.db import connection
+import csv
 
 User = get_user_model()
 
@@ -118,4 +121,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated, ]
     )
     def download_shopping_cart(self, request):
-        pass
+        """ Скачивание списка покупок """
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                '''
+                    SELECT recipes_ingredient.name,
+                           recipes_ingredient.measurement_unit,
+                           SUM(recipes_ingredientamount.amount)
+                    FROM recipes_shoppingcart
+                    INNER JOIN recipes_recipe
+                        ON recipes_shoppingcart.recipe_id = recipes_recipe.id
+                    INNER JOIN recipes_ingredientamount
+                        ON (
+                           recipes_ingredientamount.recipe_id
+                           = recipes_recipe.id
+                        )
+                    INNER JOIN recipes_ingredient
+                        ON (
+                           recipes_ingredientamount.ingredient_id
+                           = recipes_ingredient.id
+                        )
+                    WHERE recipes_shoppingcart.user_id = %s
+                    GROUP BY recipes_ingredient.name
+                ''', (request.user.id,)
+            )
+            shopping_cart = cursor.fetchall()
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="list.txt"'
+        for index, products in enumerate(shopping_cart, 1):
+            name, unit, amount = products
+            response.write(f'{index}. {name} ({unit}) — {amount}\n')
+        return response

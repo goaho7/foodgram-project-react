@@ -3,30 +3,24 @@ from django.contrib import admin
 from recipes.models import Favorite, Ingredient, IngredientAmount, Recipe, ShoppingCart, Subscription, Tag
 
 
-class IngredientAmountAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'ingredient', 'amount')
-
-
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'measurement_unit')
-
-
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'color', 'slug')
+    list_display = ('name', 'measurement_unit')
+    list_filter = ('name',)
+    empty_value_display = '-пусто-'
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'text', 'cooking_time')
+    list_display = ('name', 'author', 'total_favorites')
+    list_filter = ('author', 'name', 'tags')
 
-
-class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'author')
+    def total_favorites(self, obj):
+        return Favorite.objects.filter(recipe=obj).count()
 
 
 admin.site.register(Favorite)
 admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(IngredientAmount, IngredientAmountAdmin)
+admin.site.register(IngredientAmount)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(ShoppingCart)
-admin.site.register(Subscription, SubscriptionAdmin)
-admin.site.register(Tag, TagAdmin)
+admin.site.register(Subscription)
+admin.site.register(Tag)

@@ -5,7 +5,7 @@ from users.models import CustomUser
 
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'first_name', 'last_name', 'email')
-    search_fields = ('username',)
+    list_filter = ('email', 'first_name')
     empty_value_display = '-пусто-'
 
 
