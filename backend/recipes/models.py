@@ -101,17 +101,22 @@ class Recipe(models.Model):
             ),
         )
 
+    def __str__(self) -> str:
+        return f'{self.name}'
+
 
 class IngredientAmount(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
         on_delete=models.CASCADE,
+        related_name='ingredients_in_recipe',
     )
-    ingredients = models.ForeignKey(
+    ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='Ингредиент',
         on_delete=models.CASCADE,
+        related_name='recipes_with_ingredient',
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
@@ -127,9 +132,15 @@ class IngredientAmount(models.Model):
     class Meta:
         verbose_name = 'Ингредиенты рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe', 'ingredient'),
+                name='unique_recipe_ingredient',
+            ),
+        )
 
 
-class Favorites(models.Model):
+class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name='Пользователь',

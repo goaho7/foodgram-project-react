@@ -1,0 +1,121 @@
+from rest_framework import viewsets
+from recipes.models import Tag, Recipe, Ingredient, IngredientAmount, Subscription, Favorite, ShoppingCart
+from api.serializers import TagSerializer, RecipeSerializer, IngredientSerializer, SubscriptionSerializer, CustomUserSerializer, RecipeUserSerializer
+from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from djoser.views import UserViewSet
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import status
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+
+User = get_user_model()
+
+
+class CustomUserViewSet(UserViewSet):
+    """ Пользователи """
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
+    def me(self, request):
+        """Метод обработки запросов на users/me/"""
+
+        serializer = CustomUserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
+    def subscriptions(self, request):
+        """ Метод подписок """
+
+        follower = request.user.follower.all()
+        queryset = [get_object_or_404(User, username=user.author) for user in follower] # оптимизировать
+        serializer = SubscriptionSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=(IsAuthenticated,)
+    )
+    def subscribe(self, request, id):
+        """ Метод подписки/отписки на автора """
+
+        author = get_object_or_404(User, id=id)
+        if request.method == 'POST':
+            Subscription.objects.create(user=request.user, author=author)
+            serializer = SubscriptionSerializer(author)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        Subscription.objects.filter(user=request.user, author=author).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Теги """
+
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Ингредиенты """
+
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    """ Рецепты """
+
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=(IsAuthenticated,)
+    )
+    def favorite(self, request, pk):
+        """ Добавить/удалить в избранное """
+
+        recipe = get_object_or_404(Recipe, id=pk)
+        if request.method == 'POST':
+            Favorite.objects.create(user=request.user, recipe=recipe)
+            serializer = RecipeUserSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        Favorite.objects.filter(user=request.user, recipe=recipe).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=(IsAuthenticated,)
+    )
+    def shopping_cart(self, request, pk):
+        """ Добавить/удалить в список покупок """
+
+        recipe = get_object_or_404(Recipe, id=pk)
+        if request.method == 'POST':
+            ShoppingCart.objects.create(user=request.user, recipe=recipe)
+            serializer = RecipeUserSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        ShoppingCart.objects.filter(user=request.user, recipe=recipe).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated, ]
+    )
+    def download_shopping_cart(self, request):
+        pass
