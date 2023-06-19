@@ -1,39 +1,14 @@
-from rest_framework import serializers
-from recipes.models import Tag, Recipe, Ingredient, IngredientAmount, Subscription, Favorite, ShoppingCart
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserSerializer, UserCreateSerializer
-from drf_extra_fields.fields import Base64ImageField
-from django.shortcuts import get_object_or_404
 from django.db.transaction import atomic
+from django.shortcuts import get_object_or_404
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+
+from recipes.models import (Favorite, Ingredient, IngredientAmount, Recipe,
+                            ShoppingCart, Tag)
+from users.serializers import CustomUserSerializer
 
 User = get_user_model()
-
-
-class RegistrationSerializer(UserCreateSerializer):
-    """ Сериализатор регистрации """
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'password')
-
-
-class CustomUserSerializer(UserSerializer):
-    """ Сериализатор пользователя """
-
-    is_subscribed = serializers.SerializerMethodField()
-
-    class Meta:
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed')
-        model = User
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Subscription.objects.filter(
-            user=request.user, author=obj).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -50,32 +25,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'measurement_unit')
         model = Ingredient
-
-
-class RecipeUserSerializer(serializers.ModelSerializer):
-    """ Сериализатор рецептов пользователя """
-
-    class Meta:
-        fields = ('id', 'name', 'image', 'cooking_time')
-        model = Recipe
-
-
-class SubscriptionSerializer(CustomUserSerializer):
-    """ Сериализатор подписок """
-
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-
-    class Meta(CustomUserSerializer.Meta):
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
-
-    def get_recipes(self, obj):
-        recipes = obj.recipes.all()
-        return RecipeUserSerializer(recipes, many=True).data
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
@@ -130,7 +79,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             for ingredient in data.get('ingredients'):
                 amount = ingredient['amount']
                 ingredient = get_object_or_404(Ingredient, id=ingredient['id'])
-                ingredients.append({"ingredient": ingredient, "amount": amount})
+                ingredients.append(
+                    {"ingredient": ingredient, "amount": amount}
+                )
         else:
             ingredients = None
 
@@ -176,6 +127,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         for key, value in validated_data.items():
             if validated_data[key]:
                 setattr(instance, key, value)
+        instance.save()
         if tags:
             instance.tags.set(tags)
         if ingredients:

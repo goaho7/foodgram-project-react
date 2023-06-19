@@ -2,20 +2,18 @@ import os
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    default='xq8vgoubry1a5c99ufagxpkuzqw1v6mkv1h2eid4pozpa9nuz5'
+)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&h&g)_m1en8$_+@9ae7dqmyh61h8%&#i3gmf!#=@+58sv_xz&p'
+DEBUG = bool(os.getenv('DEBUG', default=''))
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost').split(',')
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
@@ -70,10 +68,15 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'django'),
+        'USER': os.getenv('POSTGRES_USER', 'django'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', '12345678'),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', 5432)
     }
 }
 
@@ -112,7 +115,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/backend_static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'backend_static')
 
 MEDIA_URL = '/backend_media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'backend_media')
@@ -129,14 +133,16 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
 }
 
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'api.serializers.RegistrationSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
+        'user_create': 'users.serializers.RegistrationSerializer',
+        'user': 'users.serializers.CustomUserSerializer',
+        'current_user': 'users.serializers.CustomUserSerializer',
     },
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
