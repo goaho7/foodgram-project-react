@@ -126,9 +126,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         if not response.content:
             return Response(
-                    {'error': 'Список покупок пуст'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                {'error': 'Список покупок пуст'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return response
 
     @action(
@@ -141,10 +141,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         shopping_cart = IngredientAmount.objects.filter(
             recipe__shopping_cart__user=request.user
-            ).values(
-                'ingredient__name', 'ingredient__measurement_unit'
-            ).annotate(
-                total_amount=Sum('amount')
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(
+            total_amount=Sum('amount')
         )
 
         return self.file_generation(shopping_cart)
