@@ -1,7 +1,5 @@
 import os
-
 from pathlib import Path
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,10 +9,9 @@ SECRET_KEY = os.getenv(
     default='xq8vgoubry1a5c99ufagxpkuzqw1v6mkv1h2eid4pozpa9nuz5'
 )
 
-DEBUG = bool(os.getenv('DEBUG', default=''))
+DEBUG = os.getenv('DEBUG') == 'True'
 
-#ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost').split(',')
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost').split(',')
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
@@ -30,6 +27,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'django_filters',
+    'colorfield',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
@@ -80,6 +79,12 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432)
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -135,15 +140,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,
 }
 
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'users.serializers.RegistrationSerializer',
-        'user': 'users.serializers.CustomUserSerializer',
-        'current_user': 'users.serializers.CustomUserSerializer',
+        'user_create': 'api.serializers.RegistrationSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
     },
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,

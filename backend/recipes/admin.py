@@ -1,7 +1,9 @@
 from django.contrib import admin
 
-from recipes.models import (Favorite, Ingredient, IngredientAmount, Recipe,
-                            ShoppingCart, Subscription, Tag)
+from recipes.models import (
+    Favorite, Ingredient, IngredientAmount, Recipe,
+    ShoppingCart, Tag
+)
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -10,9 +12,14 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+class IngredientInline(admin.TabularInline):
+    model = IngredientAmount
+
+
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'total_favorites')
     list_filter = ('author', 'name', 'tags')
+    inlines = (IngredientInline,)
 
     def total_favorites(self, obj):
         return Favorite.objects.filter(recipe=obj).count()
@@ -23,5 +30,4 @@ admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(IngredientAmount)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(ShoppingCart)
-admin.site.register(Subscription)
 admin.site.register(Tag)

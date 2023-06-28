@@ -12,4 +12,9 @@ def username_validator(value):
     if error_chars:
         raise ValidationError(error_message)
 
+    if value.lower() == 'me':
+        raise ValidationError(
+            f'Нельзя использовать {value} как имя пользователя'
+        )
+
     return value
