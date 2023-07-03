@@ -5,6 +5,7 @@ charset-normalizer==3.1.0
 cryptography==41.0.1
 defusedxml==0.7.1
 Django==4.1.4
+django-colorfield==0.9.0
 django-cors-headers==3.13.0
 django-filter==23.2
 django-templated-mail==1.1.1
@@ -14,6 +15,7 @@ djoser==2.2.0
 drf-extra-fields==3.5.0
 filetype==1.2.0
 idna==3.4
+isort==5.12.0
 oauthlib==3.2.2
 Pillow==9.5.0
 psycopg2-binary==2.9.3

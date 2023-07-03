@@ -25,7 +25,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
-        ordering = ['name']
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -45,6 +45,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
         constraints = (
             models.UniqueConstraint(
                 fields=('name', 'measurement_unit'),
@@ -54,6 +55,18 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecipeManager(models.Manager):
+    def with_annotations(self, user):
+        return self.get_queryset().annotate(
+            is_favorited=models.Exists(Favorite.objects.filter(
+                user=models.OuterRef('author'), recipe_id=models.OuterRef('pk')
+            )),
+            is_in_shopping_cart=models.Exists(ShoppingCart.objects.filter(
+                user=models.OuterRef('author'), recipe_id=models.OuterRef('pk')
+            )),
+        ).prefetch_related('tags', 'ingredients').select_related('author')
 
 
 class Recipe(models.Model):
@@ -94,8 +107,8 @@ class Recipe(models.Model):
             )
         ]
     )
-
     pub_date = models.DateTimeField(auto_now_add=True)
+    objects = RecipeManager()
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -109,7 +122,7 @@ class Recipe(models.Model):
         ordering = ('-pub_date',)
 
     def __str__(self) -> str:
-        return f'{self.name}'
+        return self.name
 
 
 class IngredientAmount(models.Model):
@@ -123,7 +136,7 @@ class IngredientAmount(models.Model):
         Ingredient,
         verbose_name='Ингредиент',
         on_delete=models.CASCADE,
-        related_name='recipes_with_ingredient',
+        related_name='ingredients_in_recipe',
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
@@ -160,7 +173,6 @@ class BaseListModel(models.Model):
 
     class Meta:
         abstract = True
-        default_related_name = '%(model_name)ss'
 
 
 class Favorite(BaseListModel):
@@ -173,9 +185,10 @@ class Favorite(BaseListModel):
                 name='unique_recipe_user',
             ),
         )
+        default_related_name = 'in_favorites'
 
     def __str__(self):
-        return f'{self.recipe}'
+        return self.recipe.name
 
 
 class ShoppingCart(BaseListModel):
@@ -188,6 +201,7 @@ class ShoppingCart(BaseListModel):
         )
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+        default_related_name = 'shopping_cart'
 
     def __str__(self):
         return f'Рецепт {self.recipe} в списке у {self.user}'

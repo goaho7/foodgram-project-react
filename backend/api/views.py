@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Exists, OuterRef, Sum
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,11 +10,13 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.filters import IngredientFilter, RecipeFilter
+from api.paginators import CustomPageNumberPaginator
 from api.permissions import IsAuthorAdminOrReadOnly
 from api.serializers import (
-    CustomUserSerializer, FavoriteSerializer,
-    IngredientSerializer, RecipeSerializer,
-    ShoppingCartSerializer,
+    AddRecipeSerializer, CustomUserSerializer,
+    FavoriteSerializer, IngredientSerializer,
+    RecipeSerializer, ShoppingCartSerializer,
     SubscribeUnsubscribeSerializer,
     SubscriptionsSerializer, TagSerializer
 )
@@ -40,30 +42,29 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name',)
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """ Рецепты """
 
-    queryset = Recipe.objects.annotate(
-        is_favorited=Exists(Favorite.objects.filter(
-            user=OuterRef('author'), recipe_id=OuterRef('pk')
-        )),
-
-        is_in_shopping_cart=Exists(ShoppingCart.objects.filter(
-            user=OuterRef('author'), recipe_id=OuterRef('pk')
-        )),
-    )
-    serializer_class = RecipeSerializer
+    queryset = Recipe.objects.all()
     http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsAuthorAdminOrReadOnly,)
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPageNumberPaginator
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('tags',)
+    filterset_class = RecipeFilter
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RecipeSerializer
+        return AddRecipeSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Recipe.objects.all()
+        return Recipe.objects.with_annotations(user)
 
     @staticmethod
     def recipe_save(serializer, pk, request):
@@ -76,7 +77,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = serializer(data=data, context={'recipe': recipe})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         methods=('post',),
@@ -145,7 +146,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(
             total_amount=Sum('amount')
-        )
+        ).order_by('ingredient__name')
 
         return self.file_generation(shopping_cart)
 
@@ -163,7 +164,9 @@ class CustomUserViewSet(UserViewSet):
     def me(self, request):
         """Метод обработки запросов на users/me/"""
 
-        serializer = CustomUserSerializer(request.user)
+        serializer = CustomUserSerializer(
+            request.user, context={'request': request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
@@ -177,7 +180,9 @@ class CustomUserViewSet(UserViewSet):
         pages = self.paginate_queryset(
             User.objects.filter(following__user=self.request.user)
         )
-        serializer = SubscriptionsSerializer(pages, many=True)
+        serializer = SubscriptionsSerializer(
+            pages, context={'request': request}, many=True
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(
@@ -190,12 +195,13 @@ class CustomUserViewSet(UserViewSet):
 
         author = get_object_or_404(User, id=id)
         serializer = SubscribeUnsubscribeSerializer(
-            data={'user': request.user.id, 'author': author.id}
+            data={'user': request.user.id, 'author': author.id},
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
-            SubscriptionsSerializer(author).data, status=status.HTTP_200_OK
+            SubscriptionsSerializer(author, context={'request': request}).data,
+            status=status.HTTP_200_OK
         )
 
     @subscribe.mapping.delete

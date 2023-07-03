@@ -16,8 +16,12 @@ router_v1.register(r'ingredients', IngredientViewSet, basename='ingredients')
 router_v1.register(r'users', CustomUserViewSet, basename='users')
 
 
+auth_urls = [
+    path('', include('djoser.urls')),
+    path('', include('djoser.urls.authtoken')),
+]
+
 urlpatterns = [
-    path('v1/', include(router_v1.urls)),
-    path('v1/auth/', include('djoser.urls')),
-    path('v1/auth/', include('djoser.urls.authtoken')),
+    path('', include(router_v1.urls)),
+    path('auth/', include(auth_urls)),
 ]

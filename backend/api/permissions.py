@@ -13,7 +13,7 @@ class IsAuthorAdminOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user.is_authenticated and (
-                request.user.is_staff
+                request.user.is_staff or request.user.is_superuser
                 or obj.author == request.user
             )
         )
