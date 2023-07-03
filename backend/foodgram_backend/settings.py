@@ -9,9 +9,9 @@ SECRET_KEY = os.getenv(
     default='xq8vgoubry1a5c99ufagxpkuzqw1v6mkv1h2eid4pozpa9nuz5'
 )
 
-DEBUG = True #os.getenv('DEBUG') == 'True'
+DEBUG = True  # os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = [] #os.getenv('ALLOWED_HOSTS', default='localhost').split(',')
+ALLOWED_HOSTS = []  # os.getenv('ALLOWED_HOSTS', default='localhost').split(',')
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
