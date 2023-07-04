@@ -48,7 +48,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """ Рецепты """
 
-    queryset = Recipe.objects.all()
     http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsAuthorAdminOrReadOnly,)
     pagination_class = CustomPageNumberPaginator
@@ -154,7 +153,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class CustomUserViewSet(UserViewSet):
     """ Пользователи """
 
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPageNumberPaginator
 
     @action(
         methods=['GET'],
@@ -201,7 +200,7 @@ class CustomUserViewSet(UserViewSet):
         serializer.save()
         return Response(
             SubscriptionsSerializer(author, context={'request': request}).data,
-            status=status.HTTP_200_OK
+            status=status.HTTP_201_CREATED
         )
 
     @subscribe.mapping.delete

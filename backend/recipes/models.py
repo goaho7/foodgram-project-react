@@ -66,7 +66,7 @@ class RecipeManager(models.Manager):
             is_in_shopping_cart=models.Exists(ShoppingCart.objects.filter(
                 user=models.OuterRef('author'), recipe_id=models.OuterRef('pk')
             )),
-        ).prefetch_related('tags', 'ingredients').select_related('author')
+        )
 
 
 class Recipe(models.Model):
@@ -113,12 +113,6 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('name', 'author'),
-                name='unique_name_author',
-            ),
-        )
         ordering = ('-pub_date',)
 
     def __str__(self) -> str:

@@ -146,8 +146,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True
     )
     author = CustomUserSerializer(read_only=True)
-    is_favorited = serializers.BooleanField(read_only=True)
-    is_in_shopping_cart = serializers.BooleanField(read_only=True)
+    is_favorited = serializers.BooleanField(default=False)
+    is_in_shopping_cart = serializers.BooleanField(default=False)
     image = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
@@ -158,7 +158,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'id', 'tags', 'author', 'ingredients',
-            'is_favorited', 'is_in_shopping_cart',
             'name', 'image', 'text', 'cooking_time'
         )
         model = Recipe

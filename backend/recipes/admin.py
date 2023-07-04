@@ -16,16 +16,14 @@ class IngredientInline(admin.TabularInline):
     model = IngredientAmount
 
 
-@admin.display
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'total_favorites')
     list_filter = ('author', 'name', 'tags')
     inlines = (IngredientInline,)
 
+    @admin.display(description='Всего в избранном')
     def total_favorites(self, obj):
         return Favorite.objects.filter(recipe=obj).count()
-
-    total_favorites.short_description = 'Всего в избранном'
 
 
 admin.site.register(Favorite)
