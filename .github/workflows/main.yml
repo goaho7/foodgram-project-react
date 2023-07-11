@@ -67,9 +67,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         script: |
-          cd infra/
-        source: "docker-compose.production.yml"
-        target: "foodgram"
+          scp infra/docker-compose.production.yml yc-user@158.160.67.135:/foodgram/docker-compose.production.yml
     - name: Executing remote ssh commands to deploy
       uses: appleboy/ssh-action@master
       with:
