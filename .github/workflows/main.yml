@@ -67,7 +67,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         script: |
-          scp infra/docker-compose.production.yml yc-user@158.160.67.135:/foodgram/docker-compose.production.yml
+          scp infra/docker-compose.production.yml yc-user@158.160.67.135:/foodgram
     - name: Executing remote ssh commands to deploy
       uses: appleboy/ssh-action@master
       with:
