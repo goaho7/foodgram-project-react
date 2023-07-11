@@ -24,6 +24,8 @@ services:
 
   frontend:
     image: goaho7/foodgram_frontend
+    depends_on:
+      - db
     volumes:
       - ../frontend/:/app/result_build/
 
