@@ -19,8 +19,8 @@ services:
     depends_on:
       - db
     volumes:
-      - static_volume:/static_backend/
-      - media_volume:/media_backend/
+      - static_volume:/app/static_backend/
+      - media_volume:/app/media_backend/
 
   frontend:
     image: goaho7/foodgram_frontend
