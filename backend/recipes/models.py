@@ -1,4 +1,5 @@
 from colorfield.fields import ColorField
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -9,7 +10,7 @@ User = get_user_model()
 class Tag(models.Model):
     name = models.CharField(
         'Название',
-        max_length=200,
+        max_length=settings.MAX_LENGTH,
         unique=True
     )
     color = ColorField(
@@ -18,7 +19,7 @@ class Tag(models.Model):
     )
     slug = models.SlugField(
         'Уникальный слаг',
-        max_length=200,
+        max_length=settings.MAX_LENGTH,
         unique=True
     )
 
@@ -33,7 +34,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=200,
+        max_length=settings.MAX_LENGTH,
         db_index=True,
         verbose_name='Название',
     )
@@ -72,7 +73,7 @@ class RecipeManager(models.Manager):
 class Recipe(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=200,
+        max_length=settings.MAX_LENGTH,
     )
     author = models.ForeignKey(
         User,
@@ -95,6 +96,7 @@ class Recipe(models.Model):
     image = models.ImageField(
         verbose_name='Изображение',
         upload_to='recipe_images/',
+        max_length=100000
     )
     text = models.TextField(
         verbose_name='Описание'
