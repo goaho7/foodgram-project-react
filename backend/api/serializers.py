@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -12,6 +14,9 @@ from recipes.models import (
 from users.models import Subscription
 
 User = get_user_model()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class RegistrationSerializer(UserCreateSerializer):
@@ -247,6 +252,15 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         else:
             ingredients = None
 
+        logger.debug({
+            'ingredients': ingredients,
+            'tags': data.get('tags'),
+            'image': data.get('image'),
+            'name': data.get('name'),
+            'text': data.get('text'),
+            'cooking_time': data.get('cooking_time')
+        })
+
         return {
             'ingredients': ingredients,
             'tags': data.get('tags'),
@@ -272,7 +286,7 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         validated_data['author'] = self.context.get('request').user
-        print(validated_data)
+        logger.debug(validated_data)
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.save_ingredient_amount(ingredients, recipe)
