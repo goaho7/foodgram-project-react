@@ -73,7 +73,7 @@ class RecipeManager(models.Manager):
 class Recipe(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.MAX_LENGTH,
+        #max_length=settings.MAX_LENGTH,
     )
     author = models.ForeignKey(
         User,
