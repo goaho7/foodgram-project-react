@@ -273,6 +273,7 @@ class AddRecipeSerializer(serializers.ModelSerializer):
     @staticmethod
     def save_ingredient_amount(ingredients, recipe):
         ingredient_objs = []
+        logger.debug(ingredients)
         for ingredient in ingredients:
             ingredient_objs.append(IngredientAmount(
                 recipe=recipe,

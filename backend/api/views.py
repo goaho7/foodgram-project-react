@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
@@ -26,6 +28,9 @@ from recipes.models import (
 from users.models import Subscription
 
 User = get_user_model()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -59,6 +64,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return AddRecipeSerializer
 
     def get_queryset(self):
+        logger.debug('get_queryset')
         user = self.request.user
         if not user.is_authenticated:
             return Recipe.objects.all()
