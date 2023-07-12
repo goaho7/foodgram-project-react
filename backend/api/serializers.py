@@ -272,6 +272,7 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         validated_data['author'] = self.context.get('request').user
+        print(validated_data)
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.save_ingredient_amount(ingredients, recipe)
