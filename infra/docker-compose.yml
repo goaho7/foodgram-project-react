@@ -19,8 +19,8 @@ services:
     depends_on:
       - db
     volumes:
-      - static:/app/backend_static/
-      - media:/app/backend_media/
+      - static:/app/static_backend/
+      - media:/app/media_backend/
 
   frontend:
     build:
@@ -40,5 +40,5 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static:/var/html/backend_static/
-      - media:/var/html/backend_media/
+      - static:/var/html/static_backend/
+      - media:/var/html/media_backend/
