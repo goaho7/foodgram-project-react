@@ -294,7 +294,9 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         filename = default_storage.save(
             os.path.join(settings.MEDIA_ROOT, image_data.name), image_data
         )
-        validated_data['image'] = os.path.join(settings.MEDIA_URL, 'recipe_images/', filename)
+        validated_data['image'] = os.path.join(
+            settings.MEDIA_URL, 'recipe_images/', filename
+        )
 
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
