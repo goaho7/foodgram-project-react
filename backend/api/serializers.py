@@ -1,7 +1,7 @@
-import base64
+# import base64
 
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
+# from django.core.files.base import ContentFile
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
 # from drf_extra_fields.fields import Base64ImageField
