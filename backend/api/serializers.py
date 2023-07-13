@@ -201,7 +201,7 @@ class AddRecipeSerializer(serializers.ModelSerializer):
     ingredients = AddIngredientSerializer(
         many=True, source='ingredients_in_recipe'
     )
-    image = Base64ImageField(max_length=512)
+    image = Base64ImageField()
     author = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault()
@@ -294,7 +294,7 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         filename = default_storage.save(
             os.path.join(settings.MEDIA_ROOT, image_data.name), image_data
         )
-        validated_data['image'] = os.path.join(settings.MEDIA_URL, filename)
+        validated_data['image'] = os.path.join(settings.MEDIA_URL, 'recipe_images/', filename)
 
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
