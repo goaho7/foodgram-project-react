@@ -1,6 +1,7 @@
-import logging
+import base64
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -14,9 +15,6 @@ from recipes.models import (
 from users.models import Subscription
 
 User = get_user_model()
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class RegistrationSerializer(UserCreateSerializer):
@@ -179,6 +177,18 @@ class AddIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
+class Base64ImageField(serializers.ImageField):
+    """ Класс для работы с изображениями """
+
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+        return super().to_internal_value(data)
+
+
 class AddRecipeSerializer(serializers.ModelSerializer):
     """ Сериализатор добавления/обновления рецепта """
 
@@ -252,15 +262,6 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         else:
             ingredients = None
 
-        logger.debug({
-            'ingredients': ingredients,
-            'tags': data.get('tags'),
-            'image': data.get('image'),
-            'name': data.get('name'),
-            'text': data.get('text'),
-            'cooking_time': data.get('cooking_time')
-        })
-
         return {
             'ingredients': ingredients,
             'tags': data.get('tags'),
@@ -273,7 +274,6 @@ class AddRecipeSerializer(serializers.ModelSerializer):
     @staticmethod
     def save_ingredient_amount(ingredients, recipe):
         ingredient_objs = []
-        logger.debug(ingredients)
         for ingredient in ingredients:
             ingredient_objs.append(IngredientAmount(
                 recipe=recipe,
@@ -287,7 +287,6 @@ class AddRecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         validated_data['author'] = self.context.get('request').user
-        logger.debug(validated_data)
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.save_ingredient_amount(ingredients, recipe)
