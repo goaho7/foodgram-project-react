@@ -162,7 +162,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.BooleanField(default=False)
     is_in_shopping_cart = serializers.BooleanField(default=False)
-    image = Base64ImageField(max_length=None, use_url=True)
+    image = Base64ImageField(max_length=512, use_url=True)
 
     class Meta:
         fields = (
