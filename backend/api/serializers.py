@@ -12,6 +12,7 @@ from recipes.models import (
     Favorite, Ingredient, IngredientAmount, Recipe,
     ShoppingCart, Tag
 )
+
 from users.models import Subscription
 
 User = get_user_model()
