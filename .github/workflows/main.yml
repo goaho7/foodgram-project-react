@@ -66,10 +66,13 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        source: "infra/docker-compose.production.yml,infra/nginx.conf"
+        source: |
+          infra/docker-compose.production.yml
+          infra/nginx.conf
         target: "foodgram"
         strip_components: 1
-        source: "data/ingredients.csv,data/ingredients.json"
+          data/ingredients.csv
+          data/ingredients.json
         target: "data"
         strip_components: 1
 
