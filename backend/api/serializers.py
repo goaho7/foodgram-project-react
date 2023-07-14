@@ -1,14 +1,13 @@
 import base64
-import os
 
-from django.conf import settings
-from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
+#from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+from django.shortcuts import get_object_or_404
 
 from recipes.models import (
     Favorite, Ingredient, IngredientAmount, Recipe,
@@ -250,54 +249,50 @@ class AddRecipeSerializer(serializers.ModelSerializer):
 
         return value
 
-    def to_internal_value(self, data):
-        super().to_internal_value(data)
+    # def to_internal_value(self, data):
+    #     super().to_internal_value(data)
 
-        if data.get('ingredients'):
-            ingredients = []
-            for ingredient in data.get('ingredients'):
-                amount = ingredient['amount']
-                ingredient = Ingredient.objects.get(pk=ingredient['id'])
-                ingredients.append(
-                    {'ingredient': ingredient, 'amount': amount}
-                )
-        else:
-            ingredients = None
+    #     if data.get('ingredients'):
+    #         ingredients = []
+    #         for ingredient in data.get('ingredients'):
+    #             amount = ingredient['amount']
+    #             ingredient = Ingredient.objects.get(pk=ingredient['id'])
+    #             ingredients.append(
+    #                 {'ingredient': ingredient, 'amount': amount}
+    #             )
+    #     else:
+    #         ingredients = None
 
-        return {
-            'ingredients': ingredients,
-            'tags': data.get('tags'),
-            'image': data.get('image'),
-            'name': data.get('name'),
-            'text': data.get('text'),
-            'cooking_time': data.get('cooking_time')
-        }
+    #     return {
+    #         'ingredients': ingredients,
+    #         'tags': data.get('tags'),
+    #         'image': data.get('image'),
+    #         'name': data.get('name'),
+    #         'text': data.get('text'),
+    #         'cooking_time': data.get('cooking_time')
+    #     }
 
     @staticmethod
     def save_ingredient_amount(ingredients, recipe):
         ingredient_objs = []
         for ingredient in ingredients:
+            current_ingredient = get_object_or_404(
+                Ingredient, id=ingredient.get('id')
+            )
             ingredient_objs.append(IngredientAmount(
                 recipe=recipe,
-                ingredient=ingredient.get('ingredient'),
+                ingredient=current_ingredient,
                 amount=ingredient.get('amount')
             ))
         IngredientAmount.objects.bulk_create(ingredient_objs)
 
     @atomic
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
+        print('/'*150)
+        print(validated_data)
+        ingredients = validated_data.pop('ingredients_in_recipe')
         tags = validated_data.pop('tags')
         validated_data['author'] = self.context.get('request').user
-
-        image_data = validated_data.pop('image')
-        filename = default_storage.save(
-            os.path.join(settings.MEDIA_ROOT, image_data.name), image_data
-        )
-        validated_data['image'] = os.path.join(
-            settings.MEDIA_URL, 'recipe_images/', filename
-        )
-
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.save_ingredient_amount(ingredients, recipe)
