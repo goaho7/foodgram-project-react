@@ -8,7 +8,6 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from django.shortcuts import get_object_or_404
-
 from recipes.models import (
     Favorite, Ingredient, IngredientAmount, Recipe,
     ShoppingCart, Tag
