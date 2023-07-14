@@ -1,6 +1,4 @@
-import base64
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -141,18 +139,6 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount',)
 
 
-# class Base64ImageField(serializers.ImageField):
-#     """ Класс для работы с изображениями """
-
-#     def to_internal_value(self, data):
-#         if isinstance(data, str) and data.startswith('data:image'):
-#             format, imgstr = data.split(';base64,')
-#             ext = format.split('/')[-1]
-#             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-#         return super().to_internal_value(data)
-
-
 class RecipeSerializer(serializers.ModelSerializer):
     """ Сериализатор отображения рецептов """
 
@@ -250,28 +236,6 @@ class AddRecipeSerializer(serializers.ModelSerializer):
 
         return value
 
-    # def to_internal_value(self, data):
-    #     super().to_internal_value(data)
-
-    #     if data.get('ingredients'):
-    #         ingredients = []
-    #         for ingredient in data.get('ingredients'):
-    #             amount = ingredient['amount']
-    #             ingredient = Ingredient.objects.get(pk=ingredient['id'])
-    #             ingredients.append(
-    #                 {'ingredient': ingredient, 'amount': amount}
-    #             )
-    #     else:
-    #         ingredients = None
-
-    #     return {
-    #         'ingredients': ingredients,
-    #         'tags': data.get('tags'),
-    #         'image': data.get('image'),
-    #         'name': data.get('name'),
-    #         'text': data.get('text'),
-    #         'cooking_time': data.get('cooking_time')
-    #     }
 
     @staticmethod
     def save_ingredient_amount(ingredients, recipe):
