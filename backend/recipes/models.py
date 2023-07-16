@@ -61,11 +61,11 @@ class Ingredient(models.Model):
 class RecipeManager(models.Manager):
     def with_annotations(self, user):
         return self.get_queryset().annotate(
-            is_favorited=models.Exists(Favorite.objects.filter(
-                user=models.OuterRef('author'), recipe_id=models.OuterRef('pk')
+            is_favorited=models.Exists(user.in_favorites.filter(
+                recipe_id=models.OuterRef('pk')
             )),
-            is_in_shopping_cart=models.Exists(ShoppingCart.objects.filter(
-                user=models.OuterRef('author'), recipe_id=models.OuterRef('pk')
+            is_in_shopping_cart=models.Exists(user.shopping_cart.filter(
+                recipe_id=models.OuterRef('pk')
             )),
         )
 
