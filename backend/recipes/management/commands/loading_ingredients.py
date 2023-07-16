@@ -9,7 +9,7 @@ class Command(BaseCommand):
     """ Заполняет таблицу ингредиентов. """
 
     def handle(self, *args, **options):
-        with open('../data/ingredients.csv', 'r') as file:
+        with open('./data/ingredients.csv', 'r') as file:
             reader = csv.reader(file)
             data = []
             for row in reader:
